@@ -1,0 +1,14 @@
+{
+  "name": "proxy",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^2.6.0",
+    "@discordjs/ws": "^2.0.4",
+    "@yanera/database": "*",
+    "convex": "^1.32.0",
+    "redis": "^5.11.0"
+  }
+}

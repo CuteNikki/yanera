@@ -1,0 +1,17 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun --watch run src/index.ts",
+    "register": "bun run src/register.ts"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^1.13.1",
+    "@discordjs/rest": "^2.6.0",
+    "@yanera/database": "*",
+    "convex": "^1.32.0",
+    "discord-api-types": "^0.38.40",
+    "redis": "^5.11.0",
+    "zod": "^4.3.6"
+  }
+}
