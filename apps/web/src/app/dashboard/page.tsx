@@ -29,14 +29,14 @@ export default async function Dashboard() {
       };
     })
     .sort((a, b) => {
-      // Priority 7: Bot is there AND I am Owner
-      // Priority 6: Bot is there AND I am Admin
-      // Priority 5: Bot is there AND I can Manage
-      // Priority 4: Bot is NOT there, but I am Owner
-      // Priority 3: Bot is NOT there, but I am Admin
-      // Priority 2: Bot is NOT there, but I can Manage
-      // Priority 1: Bot is there but I have no permissions
-      // Priority 0: Bot is NOT there and I am just a user
+      // Priority 7: Bot is there AND I am Owner // Can directly edit
+      // Priority 6: Bot is there AND I am Admin // Can directly edit
+      // Priority 5: Bot is there AND I can Manage // Can directly edit
+      // Priority 4: Bot is NOT there BUT I am Owner // Invite potential
+      // Priority 3: Bot is NOT there BUT I am Admin // Invite potential
+      // Priority 2: Bot is NOT there BUT I can Manage // Invite potential
+      // Priority 1: Bot is there BUT I am just a user // Can view, but not edit
+      // Priority 0: Bot is NOT there AND I am just a user // Can't do anything
 
       const getPriority = (g: typeof a) => {
         if (g.botPresent && g.isOwner) return 7;
