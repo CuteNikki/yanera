@@ -8,11 +8,12 @@
   "scripts": {
     "dev:web": "cd apps/web && bun run dev",
     "dev:worker": "bun --watch --env-file=apps/worker/.env.local run apps/worker/src/index.ts",
-    "dev:proxy": "cd apps/proxy && bun run dev",
+    "dev:gateway": "cd apps/gateway && bun run dev",
     "dev:convex": "cd packages/database && bun run dev",
-    "dev": "concurrently 'bun run dev:convex' 'bun run dev:web' 'bun run dev:proxy' 'bun run dev:worker'"
+    "dev": "concurrently 'bun run dev:convex' 'bun run dev:web' 'bun run dev:gateway' 'bun run dev:worker'"
   },
   "devDependencies": {
+    "@types/node": "^25.3.3",
     "concurrently": "^9.2.1"
   }
 }

@@ -5,14 +5,14 @@ WORKDIR /app
 COPY package.json bun.lock ./
 
 COPY apps/worker/package.json ./apps/worker/
-COPY apps/proxy/package.json ./apps/proxy/
+COPY apps/gateway/package.json ./apps/gateway/
 COPY apps/web/package.json ./apps/web/
 COPY packages/database/package.json ./packages/database/
 
 RUN bun install --frozen-lockfile
 
-COPY apps/proxy ./apps/proxy
+COPY apps/gateway ./apps/gateway
 COPY packages/database ./packages/database
 
-WORKDIR /app/apps/proxy
+WORKDIR /app/apps/gateway
 CMD ["bun", "run", "src/index.ts"]

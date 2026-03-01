@@ -1,5 +1,5 @@
 {
-  "name": "proxy",
+  "name": "gateway",
   "version": "1.0.0",
   "scripts": {
     "dev": "bun run src/index.ts"
@@ -9,6 +9,7 @@
     "@discordjs/ws": "^2.0.4",
     "@yanera/database": "*",
     "convex": "^1.32.0",
+    "discord-api-types": "^0.38.40",
     "redis": "^5.11.0"
   }
 }

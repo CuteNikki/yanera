@@ -12,20 +12,29 @@ import { createClient } from 'redis';
 
 import { db } from './database';
 import { env } from './env';
+import { startWorkerHeartbeat } from './heartbeat';
 
 const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN);
 const redis = createClient({ url: env.REDIS_URL });
-
 if (!redis.isOpen) await redis.connect();
 
+const HOST_NAME = process.env.PHYSICAL_HOSTNAME || process.env.COMPUTERNAME || 'unknown-host';
+const NODE_ID = `worker-${process.env.HOSTNAME}`;
+
+console.log(`[Worker] Starting ${NODE_ID} on ${HOST_NAME}`);
+
+let eventsProcessed = 0;
+
 async function processQueue() {
-  console.log('Worker is listening to the Redis queue...');
+  console.log(`[Worker] ${NODE_ID} is listening for Discord events...`);
 
   while (true) {
     try {
       const result = await redis.blPop('discord_events_queue', 0);
-
       if (!result) continue;
+
+      eventsProcessed++;
+      console.log(`[Worker] ${NODE_ID} Processing event #${eventsProcessed}`);
 
       const payload = JSON.parse(result.element) as { event: string; data: unknown };
 
@@ -53,16 +62,19 @@ async function processQueue() {
             const count = await db.query(api.guild.pingCounter.getPingCount, { guildId });
             await db.mutation(api.guild.pingCounter.incrementPingCounter, { guildId });
 
-            await rest.patch(Routes.webhookMessage(env.DISCORD_CLIENT_ID, interaction.token), {
+            await rest.patch(Routes.webhookMessage(env.DISCORD_CLIENT_ID, interaction.token, '@original'), {
               body: { content: `Pong! This guild has been pinged ${count + 1} times.` },
             });
           }
         }
       }
     } catch (error) {
-      console.error('Error processing queue item:', error);
+      console.error(`[Worker] ${NODE_ID} Error processing queue:`, error);
+      // Prevent CPU spike if redis goes offline
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
     }
   }
 }
 
+startWorkerHeartbeat(NODE_ID, HOST_NAME, () => eventsProcessed);
 processQueue();

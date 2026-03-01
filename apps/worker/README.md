@@ -4,10 +4,10 @@ The **Worker** is the "brain" / core processing engine of the Yanera ecosystem. 
 
 ## Purpose
 
-By separating the logic from the WebSocket connection (Proxy), the Worker provides:
+By separating the logic from the WebSocket connection, the Worker provides:
 
 - **Horizontal Scaling**: Need to handle more commands? Just spin up more Worker containers. Redis will load-balance the events between them automatically.
-- **Fault Tolerance**: If a Worker crashes while processing a command, the Proxy stays connected to Discord.
+- **Fault Tolerance**: If a Worker crashes while processing a command, the Gateway stays connected to Discord.
 - **Database-First Logic**: Built to work seamlessly with **Convex**, ensuring all server settings and user data are reactive and real-time.
 
 ## Features

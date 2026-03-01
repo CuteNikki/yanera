@@ -2,7 +2,7 @@
 
 Expect breaking changes and incomplete documentation. Please open an issue or reach out if you want to contribute or have questions.
 
-Things are still in very early stages, but the overall architecture and design are mostly settled. The Proxy and Worker are both functional.
+Things are still in very early stages, but the overall architecture and design are mostly settled. The Gateway and Worker are both functional.
 
 # Yanera
 
@@ -14,10 +14,10 @@ Built with Bun, Docker, Convex, and Redis.
 
 Unlike traditional monolithic bots, Yanera splits the workload into specialized services:
 
-- [**Proxy**](apps/proxy/README.md): The "Ear" - Maintains the WebSocket connection to Discord. It is purely stateless, pushing raw events into a Redis queue.
-- [**Worker**](apps/worker/README.md): The "Brain" - A scalable consumer that pulls jobs from Redis, interacts with the database, and responds via REST.
-- [**Web**](apps/web/README.md): The "Face" - A Next.js dashboard for real-time server management and analytics.
-- [**Database**](packages/database/README.md): The "Memory" - Shared types and Convex schema for reactive, real-time data synchronization.
+- [**Gateway**](apps/gateway/README.md): The "Ear" - Maintains persistent, sharded WebSocket connections to Discord. It negotiates shard ownership via Redis and pushes raw events into a shared queue.
+- [**Worker**](apps/worker/README.md): The "Brain" - A scalable consumer fleet that pulls jobs from Redis, interacts with the database, and responds via REST.
+- [**Web**](apps/web/README.md): The "Face" - A Next.js dashboard for real-time infrastructure monitoring, server management, and analytics.
+- [**Database**](packages/database/README.md): The "Memory" — Reactive, real-time data synchronization using Convex.
 
 ## Getting Started
 
@@ -46,7 +46,7 @@ Unlike traditional monolithic bots, Yanera splits the workload into specialized 
 
 3. Ignition
 
-   Launch the entire development stack (Proxy, Worker, Convex, and Dashboard) in a single terminal:
+   Launch the entire development stack (Gateway, Worker, Convex, and Dashboard) in a single terminal:
 
    ```bash
    bun run dev
@@ -56,7 +56,7 @@ Unlike traditional monolithic bots, Yanera splits the workload into specialized 
 
 - `bun run dev`: Spins up the entire local workspace via Concurrently.
 - `bun run dev:worker`: Runs the Worker with file watching.
-- `bun run dev:proxy`: Runs the Proxy server.
+- `bun run dev:gateway`: Runs the Gateway node.
 - `bun run dev:web`: Runs the Next.js dashboard.
 - `bun run dev:convex`: Starts the Convex dev server for real-time schema syncing.
 - `docker ps`: Lists running containers and their status.
@@ -71,12 +71,12 @@ Unlike traditional monolithic bots, Yanera splits the workload into specialized 
 ```
 yanera/
 ├── apps/
-│   ├── proxy/          # Discord proxy
-│   ├── worker/         # Processing worker
+│   ├── gateway/        # Discord shard gateway & coordinator
+│   ├── worker/         # Event processing worker
 │   └── web/            # Next.js Website/Dashboard
 ├── packages/
-│   └── database/       # Convex Schema & Shared TypeScript definitions
-├── docker-compose.yml  # Backend Orchestration
+│   └── database/       # Convex Schema & Shared types
+├── docker-compose.yml  # Infrastructure Orchestration
 └── README.md           # You are here!
 ```
 

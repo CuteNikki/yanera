@@ -1,20 +1,19 @@
 services:
   redis:
     image: redis:alpine
-    container_name: yanera-redis
     ports:
       - '6379:6379'
     restart: unless-stopped
 
-  proxy:
+  gateway:
     build:
       context: .
-      dockerfile: apps/proxy/Dockerfile
-    container_name: yanera-proxy
+      dockerfile: apps/gateway/Dockerfile
     env_file:
-      - apps/proxy/.env.local
+      - apps/gateway/.env.local
     environment:
       - REDIS_URL=redis://redis:6379
+      - PHYSICAL_HOSTNAME=${HOSTNAME}
     depends_on:
       - redis
     restart: unless-stopped
@@ -23,11 +22,11 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
-    container_name: yanera-worker
     env_file:
       - apps/worker/.env.local
     environment:
       - REDIS_URL=redis://redis:6379
+      - PHYSICAL_HOSTNAME=${HOSTNAME}
     depends_on:
       - redis
     restart: unless-stopped
