@@ -17,8 +17,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      // @ts-expect-error - We know this is fine, but the types don't reflect it
-      session.accessToken = token.accessToken;
+      session.accessToken = token.accessToken as string;
       return session;
     },
   },

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { redirect } from 'next/navigation';
 
 import { auth } from '@/auth';
 import { getBotGuilds, getUserGuilds } from '@/lib/discord';
@@ -6,17 +7,15 @@ import { getBotGuilds, getUserGuilds } from '@/lib/discord';
 export default async function Dashboard() {
   const session = await auth();
 
-  if (!session) {
-    return <></>;
+  if (!session?.accessToken) {
+    return redirect('/');
   }
 
-  // @ts-expect-error - We know this is fine, but the types don't reflect it
-  const [userGuilds, botGuildIds] = await Promise.all([getUserGuilds(session.accessToken), getBotGuilds()]);
+  const [userGuilds, botGuildIds] = await Promise.all([getUserGuilds(), getBotGuilds()]);
 
   const processedGuilds = userGuilds
     .map((guild) => {
-      // Check for Administrator (0x8) OR Manage Guild (0x20)
-      const isOwner = guild.owner;
+      const isOwner = guild.owner; // This is a boolean field provided by Discord's API
       const isAdmin = (BigInt(guild.permissions) & BigInt(0x8)) === BigInt(0x8);
       const canManageServer = (BigInt(guild.permissions) & BigInt(0x20)) === BigInt(0x20);
 
@@ -72,7 +71,7 @@ export default async function Dashboard() {
               <div className='shrink-0'>
                 {guild.icon ? (
                   <Image
-                    src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${guild.icon.startsWith('a_') ? 'gif' : 'png'}`}
+                    src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${guild.icon.startsWith('a_') ? 'gif' : 'png'}?size=64`}
                     alt={guild.name}
                     width={50}
                     height={50}
@@ -107,13 +106,13 @@ export default async function Dashboard() {
               {guild.canManage && !guild.botPresent && (
                 <a
                   href={`https://discord.com/oauth2/authorize?client_id=${process.env.AUTH_DISCORD_ID}&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}&redirect_uri=${encodeURIComponent(`http://localhost:3000/dashboard`)}&response_type=code`}
-                  className='bg-indigo-500 px-3 py-1 rounded hover:bg-indigo-600 transition'
+                  className='bg-indigo-500 px-3 py-1.5 text-sm rounded hover:bg-indigo-600 transition whitespace-nowrap'
                 >
                   Add Bot
                 </a>
               )}
               {!guild.canManage && guild.botPresent && (
-                <a href={`/dashboard/${guild.id}`} className='bg-gray-500 px-3 py-1 rounded hover:bg-gray-600 transition'>
+                <a href={`/dashboard/${guild.id}`} className='bg-gray-500 px-3 py-1.5 text-sm rounded hover:bg-gray-600 transition whitespace-nowrap'>
                   View
                 </a>
               )}
