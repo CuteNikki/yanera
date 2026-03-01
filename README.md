@@ -59,9 +59,12 @@ Unlike traditional monolithic bots, Yanera splits the workload into specialized 
 - `bun run dev:proxy`: Runs the Proxy server.
 - `bun run dev:web`: Runs the Next.js dashboard.
 - `bun run dev:convex`: Starts the Convex dev server for real-time schema syncing.
-- `docker compose up -d --build`: Rebuilds and deploys the backend microservices.
-- `docker compose down`: Tears down the Docker environment.
+- `docker ps`: Lists running containers and their status.
 - `docker compose logs -f`: Streams logs from all services for debugging.
+- `docker compose down`: Tears down the Docker environment.
+- `docker compose up -d --build`: Rebuilds and deploys the backend microservices.
+- `docker compose up -d --scale worker=3`: Scales the Worker service to 3 instances.
+- `docker compose up -d redis`: Starts only the Redis service.
 
 ## Directory Structure
 
