@@ -7,13 +7,25 @@ export default defineSchema({
   }).index('by_guildId', ['guildId']),
 
   nodes: defineTable({
-    hostName: v.string(), // e.g., "yanera-13"
-    nodeId: v.string(), // e.g., "node-mm4wurxf"
+    hostName: v.string(),
+    nodeId: v.string(),
     type: v.union(v.literal('gateway'), v.literal('worker')),
-    shards: v.optional(v.array(v.number())), // e.g., [120, 121, ..., 129]
-    guildCount: v.optional(v.number()),
-    unavailableGuilds: v.optional(v.number()),
-    ping: v.number(),
+    shards: v.optional(v.array(v.number())),
+
+    shardData: v.optional(
+      v.array(
+        v.object({
+          id: v.number(),
+          ping: v.number(),
+          totalEvents: v.number(),
+          eventsPerSecond: v.optional(v.number()),
+          activeGuildIds: v.array(v.string()),
+          unavailableGuildIds: v.array(v.string()),
+        }),
+      ),
+    ),
+
+    eventsPerSecond: v.optional(v.number()), // Worker nodes don't have shard data
     memoryUsage: v.number(),
     startedAt: v.number(),
     lastHeartbeat: v.number(),

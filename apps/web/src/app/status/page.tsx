@@ -41,6 +41,7 @@ export default function StatusPage() {
   if (nodes === undefined) return <div className='p-8 text-neutral-400'>Loading cluster status...</div>;
 
   const gateways = nodes.filter((n) => n.type === 'gateway');
+  const gatewaysWithPing = gateways.filter((g) => g.shardData && g.shardData.some((s) => s.ping > 0));
   const workers = nodes.filter((n) => n.type === 'worker');
 
   const groupByHost = (items: typeof nodes) => {
@@ -62,7 +63,6 @@ export default function StatusPage() {
       </header>
 
       {/* --- SUMMARY SECTION --- */}
-
       <section className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2'>
         {/* Total Hosts */}
         <div className='border rounded-xl bg-card p-6 shadow-sm border-neutral-800 flex items-center gap-4'>
@@ -91,7 +91,9 @@ export default function StatusPage() {
           <div>
             <p className='text-sm text-neutral-500'>Average Latency</p>
             <p className='text-xl font-bold font-mono'>
-              {gateways.length > 0 ? `${Math.round(gateways.reduce((sum, n) => sum + (n.ping ?? 0), 0) / gateways.length)} ms` : 'N/A'}
+              {gatewaysWithPing.length > 0
+                ? `${Math.round(gatewaysWithPing.reduce((sum, n) => sum + (n.shardData?.reduce((s, shard) => s + shard.ping, 0) || 0), 0) / (gatewaysWithPing.reduce((sum, n) => sum + (n.shardData?.length || 0), 0) || 1))} ms`
+                : 'N/A'}
             </p>
           </div>
         </div>
@@ -175,12 +177,18 @@ function NodeCard({ node, now }: { node: Doc<'nodes'>; now: number }) {
           {node.type === 'gateway' ? (
             <>
               <SignalIcon className='w-3 h-3' />
-              <span className='font-mono'>{node.ping} ms</span>
+              <span className='font-mono'>
+                {node.shardData?.length && node.shardData.some((s) => s.ping > 0)
+                  ? `${Math.round(node.shardData.reduce((sum, shard) => sum + shard.ping, 0) / node.shardData.length)} ms`
+                  : 'N/A'}
+              </span>
             </>
           ) : (
             <>
               <RadioIcon className='w-3 h-3' />
-              <span className='font-mono'>{node.ping < 1 && node.ping > 0 ? node.ping.toFixed(2) : node.ping.toLocaleString()} / s</span>
+              <span className='font-mono'>
+                {node.eventsPerSecond !== undefined ? <>{node.eventsPerSecond > 0 ? node.eventsPerSecond.toFixed(2) : '0'} / s</> : 'N/A'}
+              </span>
             </>
           )}
         </div>
@@ -200,27 +208,27 @@ function NodeCard({ node, now }: { node: Doc<'nodes'>; now: number }) {
           <>
             <div className='flex items-center gap-2 text-neutral-500' title='Guild Count'>
               <GlobeIcon className='w-3 h-3' />
-              <span className='font-mono'>{node.guildCount}</span>
+              <span className='font-mono'>{node.shardData?.reduce((sum, shard) => sum + shard.activeGuildIds.length, 0)}</span>
             </div>
             <div className='flex items-center gap-2 text-neutral-500 sm:justify-self-end sm:flex-row-reverse' title='Unavailable Guilds'>
               <GlobeOffIcon className='w-3 h-3' />
-              <span className='font-mono'>{node.unavailableGuilds}</span>
+              <span className='font-mono'>{node.shardData?.reduce((sum, shard) => sum + shard.unavailableGuildIds.length, 0)}</span>
             </div>
           </>
         )}
       </div>
 
-      {node.type === 'gateway' && node.shards && (
+      {node.type === 'gateway' && node.shardData && (
         <div className='pt-3 border-t border-neutral-800'>
           <span className='text-neutral-400 text-xs'>Shard IDs:</span>
           <div className='flex flex-wrap gap-1 pt-2'>
-            {node.shards.map((s: number) => (
+            {node.shardData.map((shard) => (
               <div
-                key={s}
-                title={`Shard ${s}`}
+                key={shard.id}
+                title={`Shard ${shard.id}\nPing: ${shard.ping > 0 ? shard.ping : 'N/A'} ms\nEvents/s: ${shard.eventsPerSecond ?? 'N/A'}\nActive Guilds: ${shard.activeGuildIds.length}\nUnavailable Guilds: ${shard.unavailableGuildIds.length}`}
                 className='w-5 h-5 flex items-center justify-center bg-blue-500/20 text-blue-400 text-[9px] rounded font-mono border border-blue-500/20'
               >
-                {s}
+                {shard.id}
               </div>
             ))}
           </div>

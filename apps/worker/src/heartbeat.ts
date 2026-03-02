@@ -1,5 +1,4 @@
-// apps/worker/src/heartbeat.ts
-import { api } from '@yanera/database/convex/_generated/api';
+import { api } from '@yanera/database';
 import { ConvexHttpClient } from 'convex/browser';
 
 const convex = new ConvexHttpClient(process.env.CONVEX_URL!);
@@ -16,18 +15,19 @@ export function startWorkerHeartbeat(nodeId: string, hostName: string, getEvents
       const deltaEvents = currentEventCount - lastEventCount;
       const rawEPS = deltaEvents / 15;
       const eventsPerSecond = rawEPS > 0 && rawEPS < 1 ? parseFloat(rawEPS.toFixed(2)) : Math.round(rawEPS);
-
       lastEventCount = currentEventCount;
+      const memoryUsage = Math.round(process.memoryUsage().rss / 1024 / 1024);
 
       await convex.mutation(api.nodes.heartbeat, {
         hostName: hostName,
         nodeId: nodeId,
         type: 'worker',
-        ping: eventsPerSecond,
-        memoryUsage: Math.round(process.memoryUsage().rss / 1024 / 1024),
+        eventsPerSecond: eventsPerSecond,
+        memoryUsage: memoryUsage,
         startedAt: STARTED_AT,
         lastHeartbeat: Date.now(),
       });
+      console.log(`[Heartbeat] Sent heartbeat for ${nodeId}. Events Processed: ${currentEventCount}. EPS: ${eventsPerSecond}. Memory Usage: ${memoryUsage}MB.`);
     } catch (error) {
       console.error('[Heartbeat] Failed to send worker heartbeat to Convex:', error);
     }

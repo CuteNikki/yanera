@@ -8,12 +8,24 @@ export const heartbeat = mutation({
     nodeId: v.string(),
     type: v.union(v.literal('gateway'), v.literal('worker')),
     shards: v.optional(v.array(v.number())),
-    ping: v.number(),
+
+    shardData: v.optional(
+      v.array(
+        v.object({
+          id: v.number(),
+          ping: v.number(),
+          totalEvents: v.number(),
+          eventsPerSecond: v.optional(v.number()),
+          activeGuildIds: v.array(v.string()),
+          unavailableGuildIds: v.array(v.string()),
+        }),
+      ),
+    ),
+
+    eventsPerSecond: v.optional(v.number()),
     memoryUsage: v.number(),
     startedAt: v.number(),
     lastHeartbeat: v.number(),
-    guildCount: v.optional(v.number()),
-    unavailableGuilds: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -24,9 +36,10 @@ export const heartbeat = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         shards: args.shards,
-        ping: args.ping,
+        shardData: args.shardData,
         memoryUsage: args.memoryUsage,
         lastHeartbeat: args.lastHeartbeat,
+        eventsPerSecond: args.eventsPerSecond,
       });
     } else {
       await ctx.db.insert('nodes', args);
