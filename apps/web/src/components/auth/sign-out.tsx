@@ -1,19 +1,47 @@
-'use client';
-
-import { Session } from 'next-auth';
-import { signOut } from 'next-auth/react';
 import Image from 'next/image';
 
-export function SignOut({ session }: { session: Session }) {
+import { signOut } from '@/auth';
+
+import { DiscordProfile } from '@/lib/discord';
+import { getUserAvatarUrl } from '@/lib/utils';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+
+export function SignOut({ profile }: { profile: DiscordProfile }) {
   return (
     <form
-      onSubmit={() => {
-        signOut();
+      action={async () => {
+        'use server';
+        await signOut();
       }}
     >
-      <p className='text-sm text-muted-foreground'>{session.user?.name}</p>
-      {session.user?.image && <Image src={session.user.image} alt='Avatar' width={40} height={40} className='rounded-full' />}
-      <button className='px-4 py-2 bg-red-600 text-white rounded mt-2'>Logout</button>
+      <Card className='sm:min-w-80'>
+        <CardContent className='flex flex-row items-center justify-between gap-8'>
+          <div className='flex flex-row items-center gap-2'>
+            <Image
+              src={getUserAvatarUrl(profile.id, profile.discriminator, profile.avatar, 128)}
+              alt='Avatar'
+              width={40}
+              height={40}
+              className='h-10 w-10 shrink-0 rounded-full'
+            />
+            {profile.global_name ? (
+              <div className='leading-tight'>
+                <p>{profile.global_name}</p>
+                <p className='text-muted-foreground text-sm'>@{profile.username}</p>
+              </div>
+            ) : (
+              <div>
+                <p>@{profile.username}</p>
+              </div>
+            )}
+          </div>
+          <Button variant='destructive' type='submit'>
+            Logout
+          </Button>
+        </CardContent>
+      </Card>
     </form>
   );
 }

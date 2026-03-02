@@ -1,52 +1,41 @@
-import Image from 'next/image';
+import { ArrowRightIcon, RadioTowerIcon } from 'lucide-react';
+import Link from 'next/link';
 
-import { auth, signIn, signOut } from '@/auth';
-import { getUserAvatarUrl, getUserProfile } from '@/lib/discord';
+import { auth } from '@/auth';
+
+import { getUserProfile } from '@/lib/discord';
+
+import { SignIn } from '@/components/auth/sign-in';
+import { SignOut } from '@/components/auth/sign-out';
+import { Button } from '@/components/ui/button';
 
 export default async function Home() {
   const session = await auth();
-
-  // ONLY fetch the profile if we have a session.
   const profile = session ? await getUserProfile() : null;
 
   return (
-    <main className='flex flex-col items-center justify-center min-h-screen'>
-      <h1 className='text-2xl font-bold mb-4'>Welcome to Yanera</h1>
+    <main className='flex min-h-screen flex-col items-center justify-center'>
+      <h1 className='mb-4 text-2xl font-bold'>Welcome to Yanera</h1>
       {session?.user && profile ? (
-        <form
-          action={async () => {
-            'use server';
-            await signOut();
-          }}
-        >
-          <div className='flex gap-2 items-center'>
-            <Image
-              src={await getUserAvatarUrl(profile.id, profile.discriminator, profile.avatar, 128)}
-              alt='Avatar'
-              width={40}
-              height={40}
-              className='rounded-full shrink-0 w-10 h-10'
-            />
-            <div className='leading-tight'>
-              <p>{profile.global_name}</p>
-              <p className='text-sm text-muted-foreground'>@{profile.username}</p>
-            </div>
-            <button type='submit' className='px-4 py-2 bg-red-600 text-white rounded'>
-              Logout
-            </button>
+        <div className='flex flex-col items-center gap-4'>
+          <div className='flex flex-col items-center gap-2'>
+            <Button variant='secondary' asChild>
+              <Link href='/dashboard'>
+                Dashboard
+                <ArrowRightIcon className='size-5 shrink-0' />
+              </Link>
+            </Button>
+            <Button variant='outline' asChild>
+              <Link href='/status'>
+                Status Page
+                <RadioTowerIcon className='size-5 shrink-0' />
+              </Link>
+            </Button>
           </div>
-        </form>
+          <SignOut profile={profile} />
+        </div>
       ) : (
-        <form
-          action={async () => {
-            'use server';
-            await signIn('discord', { redirectTo: '/dashboard' });
-          }}
-        >
-          <button type='submit' className='px-4 py-2 bg-indigo-600 text-white rounded'>
-            Login with Discord
-          </button>
-        </form>
+        <SignIn />
       )}
     </main>
   );
