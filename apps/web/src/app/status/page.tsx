@@ -2,7 +2,19 @@
 
 import { Doc, api } from '@yanera/database';
 import { useQuery } from 'convex/react';
-import { ActivityIcon, BoxIcon, ClockIcon, GlobeIcon, GlobeOffIcon, MemoryStickIcon, RadioIcon, ServerIcon, SignalIcon, WaypointsIcon } from 'lucide-react';
+import {
+  ActivityIcon,
+  BoxIcon,
+  ChartBarIcon,
+  ClockIcon,
+  GlobeIcon,
+  GlobeOffIcon,
+  MemoryStickIcon,
+  RadioIcon,
+  ServerIcon,
+  SignalIcon,
+  WaypointsIcon,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 function getNodeStatus(lastHeartbeat: number, now: number) {
@@ -69,21 +81,23 @@ export default function StatusPage() {
           <ServerIcon className='w-6 h-6 text-neutral-400' />
           <div>
             <p className='text-sm text-neutral-500'>Total Hosts</p>
-            <p className='text-xl font-bold font-mono'>{Object.keys(groupByHost(nodes)).length > 0 ? Object.keys(groupByHost(nodes)).length : 'N/A'}</p>
+            <p className='text-xl font-bold font-mono'>
+              {Object.keys(groupByHost(nodes)).length > 0 ? Object.keys(groupByHost(nodes)).length.toLocaleString() : 'N/A'}
+            </p>
           </div>
         </div>
         <div className='border rounded-xl bg-card p-6 shadow-sm border-neutral-800 flex items-center gap-4'>
           <WaypointsIcon className='w-6 h-6 text-blue-500' />
           <div>
             <p className='text-sm text-neutral-500'>Total Gateways</p>
-            <p className='text-xl font-bold font-mono'>{gateways.length > 0 ? gateways.length : 'N/A'}</p>
+            <p className='text-xl font-bold font-mono'>{gateways.length > 0 ? gateways.length.toLocaleString() : 'N/A'}</p>
           </div>
         </div>
         <div className='border rounded-xl bg-card p-6 shadow-sm border-neutral-800 flex items-center gap-4'>
           <BoxIcon className='w-6 h-6 text-purple-500' />
           <div>
             <p className='text-sm text-neutral-500'>Total Workers</p>
-            <p className='text-xl font-bold font-mono'>{workers.length > 0 ? workers.length : 'N/A'}</p>
+            <p className='text-xl font-bold font-mono'>{workers.length > 0 ? workers.length.toLocaleString() : 'N/A'}</p>
           </div>
         </div>
         <div className='border rounded-xl bg-card p-6 shadow-sm border-neutral-800 flex items-center gap-4'>
@@ -92,7 +106,7 @@ export default function StatusPage() {
             <p className='text-sm text-neutral-500'>Average Latency</p>
             <p className='text-xl font-bold font-mono'>
               {gatewaysWithPing.length > 0
-                ? `${Math.round(gatewaysWithPing.reduce((sum, n) => sum + (n.shardData?.reduce((s, shard) => s + shard.ping, 0) || 0), 0) / (gatewaysWithPing.reduce((sum, n) => sum + (n.shardData?.length || 0), 0) || 1))} ms`
+                ? `${Math.round(gatewaysWithPing.reduce((sum, n) => sum + (n.shardData?.reduce((s, shard) => s + shard.ping, 0) || 0), 0) / (gatewaysWithPing.reduce((sum, n) => sum + (n.shardData?.length || 0), 0) || 1)).toLocaleString()} ms`
                 : 'N/A'}
             </p>
           </div>
@@ -102,7 +116,7 @@ export default function StatusPage() {
           <div>
             <p className='text-sm text-neutral-500'>Average Memory</p>
             <p className='text-xl font-bold font-mono'>
-              {nodes.length > 0 ? `${Math.round(nodes.reduce((sum, n) => sum + n.memoryUsage, 0) / nodes.length)} MB` : 'N/A'}
+              {nodes.length > 0 ? `${Math.round(nodes.reduce((sum, n) => sum + n.memoryUsage, 0) / nodes.length).toLocaleString()} MB` : 'N/A'}
             </p>
           </div>
         </div>
@@ -161,72 +175,92 @@ export default function StatusPage() {
 
 function NodeCard({ node, now }: { node: Doc<'nodes'>; now: number }) {
   const status = getNodeStatus(node.lastHeartbeat, now);
-
   const uptimeStr = formatDuration(now - node.startedAt);
   const lastSeenStr = formatDuration(now - node.lastHeartbeat);
 
+  const totalEvents = node.type === 'gateway' ? node.shardData?.reduce((sum, shard) => sum + shard.totalEvents, 0) || 0 : node.totalEvents || 0;
+  const eps = node.type === 'gateway' ? node.shardData?.reduce((sum, shard) => sum + (shard.eventsPerSecond || 0), 0) || 0 : node.eventsPerSecond || 0;
+
   return (
     <div className='border border-neutral-800 rounded-lg p-4 bg-neutral-900/50 flex flex-col gap-4'>
+      {/* Header */}
       <div className='flex justify-between items-start sm:flex-row flex-col-reverse gap-2'>
         <span className='font-mono text-xs text-neutral-400'>{node.nodeId}</span>
         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${status.color}`}>{status.label}</span>
       </div>
 
-      <div className='sm:grid grid-cols-2 gap-y-2 text-xs'>
-        <div className='flex items-center gap-2 text-neutral-500' title={node.type === 'gateway' ? 'Latency' : 'Events Processed per Second'}>
-          {node.type === 'gateway' ? (
+      <div className='flex flex-col gap-2 text-xs'>
+        {/* Row 1: Events & EPS (Combined) */}
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-2 text-neutral-500' title='Total Events'>
+            <ChartBarIcon className='w-3 h-3' />
+            <span className='font-mono'>{totalEvents.toLocaleString()}</span>
+          </div>
+          <div className='flex items-center gap-2 text-neutral-500' title='Events Per Second'>
+            <span className='font-mono'>{eps > 0 ? eps.toFixed(2) : '0'} / s</span>
+            <RadioIcon className='w-3 h-3' />
+          </div>
+        </div>
+
+        {/* Row 2: Latency & Memory */}
+        <div className='grid grid-cols-2 gap-y-2'>
+          <div className='flex items-center gap-2 text-neutral-500' title='Average Latency'>
+            {node.type === 'gateway' && (
+              <>
+                <SignalIcon className='w-3 h-3' />
+                <span className='font-mono'>
+                  {node.shardData?.length ? `${Math.round(node.shardData.reduce((sum, s) => sum + s.ping, 0) / node.shardData.length)}ms` : 'N/A'}
+                </span>
+              </>
+            )}
+          </div>
+          <div className='flex items-center gap-2 text-neutral-500 justify-self-end' title='Memory Usage'>
+            <span className='font-mono'>{node.memoryUsage.toLocaleString()} MB</span>
+            <MemoryStickIcon className='w-3 h-3' />
+          </div>
+
+          {/* Row 3: Uptime & Last Seen */}
+          <div className='flex items-center gap-2 text-neutral-500' title='Uptime'>
+            <ClockIcon className='w-3 h-3' />
+            <span className='font-mono'>{uptimeStr}</span>
+          </div>
+          <div className='flex items-center gap-2 text-neutral-500 justify-self-end' title='Last Heartbeat'>
+            <span className='font-mono'>{lastSeenStr}</span>
+            <ActivityIcon className='w-3 h-3' />
+          </div>
+
+          {/* Row 4: Gateway Guild Stats */}
+          {node.type === 'gateway' && (
             <>
-              <SignalIcon className='w-3 h-3' />
-              <span className='font-mono'>
-                {node.shardData?.length && node.shardData.some((s) => s.ping > 0)
-                  ? `${Math.round(node.shardData.reduce((sum, shard) => sum + shard.ping, 0) / node.shardData.length)} ms`
-                  : 'N/A'}
-              </span>
-            </>
-          ) : (
-            <>
-              <RadioIcon className='w-3 h-3' />
-              <span className='font-mono'>
-                {node.eventsPerSecond !== undefined ? <>{node.eventsPerSecond > 0 ? node.eventsPerSecond.toFixed(2) : '0'} / s</> : 'N/A'}
-              </span>
+              <div className='flex items-center gap-2 text-neutral-500' title='Total Active Guilds'>
+                <GlobeIcon className='w-3 h-3' />
+                <span className='font-mono'>{node.shardData?.reduce((sum, shard) => sum + shard.activeGuildIds.length, 0).toLocaleString()}</span>
+              </div>
+              <div className='flex items-center gap-2 text-neutral-500 justify-self-end' title='Total Unavailable Guilds'>
+                <span className='font-mono'>{node.shardData?.reduce((sum, shard) => sum + shard.unavailableGuildIds.length, 0).toLocaleString()}</span>
+                <GlobeOffIcon className='w-3 h-3' />
+              </div>
             </>
           )}
         </div>
-        <div className='flex items-center gap-2 text-neutral-500 sm:justify-self-end sm:flex-row-reverse' title='Memory Usage'>
-          <MemoryStickIcon className='w-3 h-3' />
-          <span className='font-mono'>{node.memoryUsage} MB</span>
-        </div>
-        <div className='flex items-center gap-2 text-neutral-500' title='Uptime'>
-          <ClockIcon className='w-3 h-3' />
-          <span className='font-mono'>{uptimeStr}</span>
-        </div>
-        <div className='flex items-center gap-2 text-neutral-500 sm:justify-self-end sm:flex-row-reverse' title='Last Heartbeat'>
-          <ActivityIcon className='w-3 h-3' />
-          <span className='font-mono'>{lastSeenStr}</span>
-        </div>
-        {node.type === 'gateway' && (
-          <>
-            <div className='flex items-center gap-2 text-neutral-500' title='Guild Count'>
-              <GlobeIcon className='w-3 h-3' />
-              <span className='font-mono'>{node.shardData?.reduce((sum, shard) => sum + shard.activeGuildIds.length, 0)}</span>
-            </div>
-            <div className='flex items-center gap-2 text-neutral-500 sm:justify-self-end sm:flex-row-reverse' title='Unavailable Guilds'>
-              <GlobeOffIcon className='w-3 h-3' />
-              <span className='font-mono'>{node.shardData?.reduce((sum, shard) => sum + shard.unavailableGuildIds.length, 0)}</span>
-            </div>
-          </>
-        )}
       </div>
 
+      {/* Shards Footer */}
       {node.type === 'gateway' && node.shardData && (
         <div className='pt-3 border-t border-neutral-800'>
-          <span className='text-neutral-400 text-xs'>Shard IDs:</span>
-          <div className='flex flex-wrap gap-1 pt-2'>
+          <div className='flex flex-wrap gap-1'>
             {node.shardData.map((shard) => (
               <div
                 key={shard.id}
-                title={`Shard ${shard.id}\nPing: ${shard.ping > 0 ? shard.ping : 'N/A'} ms\nEvents/s: ${shard.eventsPerSecond ?? 'N/A'}\nActive Guilds: ${shard.activeGuildIds.length}\nUnavailable Guilds: ${shard.unavailableGuildIds.length}`}
-                className='w-5 h-5 flex items-center justify-center bg-blue-500/20 text-blue-400 text-[9px] rounded font-mono border border-blue-500/20'
+                title={
+                  `Shard ${shard.id}\n` +
+                  `Ping: ${shard.ping > 0 ? shard.ping : 'N/A'} ms\n` +
+                  `Total Events: ${shard.totalEvents.toLocaleString()}\n` +
+                  `Events/s: ${shard.eventsPerSecond?.toFixed(2) || '0'}\n` +
+                  `Active Guilds: ${shard.activeGuildIds.length.toLocaleString()}\n` +
+                  `Unavailable Guilds: ${shard.unavailableGuildIds.length.toLocaleString()}`
+                }
+                className='w-5 h-5 flex items-center justify-center bg-blue-500/20 text-blue-400 text-xs rounded font-mono border border-blue-500/20'
               >
                 {shard.id}
               </div>

@@ -22,6 +22,7 @@ export const heartbeat = mutation({
       ),
     ),
 
+    totalEvents: v.optional(v.number()),
     eventsPerSecond: v.optional(v.number()),
     memoryUsage: v.number(),
     startedAt: v.number(),
@@ -39,6 +40,7 @@ export const heartbeat = mutation({
         shardData: args.shardData,
         memoryUsage: args.memoryUsage,
         lastHeartbeat: args.lastHeartbeat,
+        totalEvents: args.totalEvents,
         eventsPerSecond: args.eventsPerSecond,
       });
     } else {

@@ -23,6 +23,7 @@ export function startWorkerHeartbeat(nodeId: string, hostName: string, getEvents
         nodeId: nodeId,
         type: 'worker',
         eventsPerSecond: eventsPerSecond,
+        totalEvents: currentEventCount,
         memoryUsage: memoryUsage,
         startedAt: STARTED_AT,
         lastHeartbeat: Date.now(),

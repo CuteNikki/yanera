@@ -25,6 +25,7 @@ export default defineSchema({
       ),
     ),
 
+    totalEvents: v.optional(v.number()), // For worker nodes that don't have shard data
     eventsPerSecond: v.optional(v.number()), // Worker nodes don't have shard data
     memoryUsage: v.number(),
     startedAt: v.number(),
