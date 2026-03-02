@@ -255,6 +255,8 @@ function NodeCard({ node, now }: { node: Doc<'nodes'>; now: number }) {
   const uptimeStr = formatDuration(now - node.startedAt);
   const lastSeenStr = formatDuration(now - node.lastHeartbeat);
 
+  const shardsWithPing = node.shardData?.filter((s) => s.ping > 0) || [];
+  const avgPing = shardsWithPing.length > 0 ? Math.round(shardsWithPing.reduce((sum, s) => sum + s.ping, 0) / shardsWithPing.length) : 0;
   const totalEvents = node.type === 'gateway' ? node.shardData?.reduce((sum, shard) => sum + shard.totalEvents, 0) || 0 : node.totalEvents || 0;
   const eps = node.type === 'gateway' ? node.shardData?.reduce((sum, shard) => sum + (shard.eventsPerSecond || 0), 0) || 0 : node.eventsPerSecond || 0;
 
@@ -290,9 +292,7 @@ function NodeCard({ node, now }: { node: Doc<'nodes'>; now: number }) {
               {node.type === 'gateway' && (
                 <>
                   <SignalIcon className='size-4 shrink-0' />
-                  <span className='font-mono'>
-                    {node.shardData?.length ? `${Math.round(node.shardData.reduce((sum, s) => sum + s.ping, 0) / node.shardData.length)}ms` : 'N/A'}
-                  </span>
+                  <span className='font-mono'>{avgPing > 0 ? `${avgPing} ms` : 'N/A'}</span>
                 </>
               )}
             </div>
