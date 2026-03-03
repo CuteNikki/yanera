@@ -25,7 +25,7 @@ The Gateway requires the following environment variables in `apps/gateway/.env.l
 | `DISCORD_TOKEN`   | Your Discord Bot Token.                                                |
 | `REDIS_URL`       | The connection string for your Redis instance.                         |
 | `CONVEX_URL`      | Your Convex deployment URL for heartbeat reporting.                    |
-| `SHARDS_PER_NODE` | Number of shards each process should handle (Default: 16).             |
+| `SHARDS_PER_NODE` | Number of shards each process should handle (64).             |
 | `HOSTNAME`        | (Optional) The name of the physical host. Defaults to system hostname. |
 
 ## Development

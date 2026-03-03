@@ -3,7 +3,7 @@ import { Routes, type RESTGetAPIGatewayBotResult } from 'discord-api-types/v10';
 import type { createClient } from 'redis';
 
 type ExactRedisClient = ReturnType<typeof createClient>;
-const SHARDS_PER_NODE = parseInt(process.env.SHARDS_PER_NODE || '16');
+const SHARDS_PER_NODE = parseInt(process.env.SHARDS_PER_NODE || '64');
 
 function formatMs(ms: number): string {
   const seconds = Math.floor((ms / 1000) % 60);
