@@ -66,7 +66,7 @@ export function StatusNodeCard({ node, highlightedShardId, now }: StatusNodeCard
   return (
     <Card
       className={cn(
-        'h-fit transition-colors bg-accent/30 [content-visibility:auto]',
+        'bg-accent/30 h-fit transition-colors [content-visibility:auto]',
         status === 'offline' && 'bg-red-500/3 ring-1 ring-red-500/30',
         status === 'unresponsive' && 'bg-yellow-500/5 ring-1 ring-yellow-500/30',
       )}
@@ -74,7 +74,7 @@ export function StatusNodeCard({ node, highlightedShardId, now }: StatusNodeCard
       {/* --- HEADER --- */}
       <CardHeader onClick={() => setExpanded(!isExpanded)} className='flex cursor-pointer items-center justify-between gap-4'>
         <div className='bg-secondary flex size-8 shrink-0 items-center justify-center rounded-md'>
-          {isGateway ? <RadioIcon className='text-chart-4 size-4 shrink-0' /> : <CpuIcon className='text-chart-2 size-4 shrink-0' />}
+          {isGateway ? <RadioIcon className='size-4 shrink-0 text-purple-400' /> : <CpuIcon className='size-4 shrink-0 text-blue-400' />}
         </div>
 
         <div className='flex min-w-0 flex-1 flex-col gap-1'>
@@ -106,7 +106,7 @@ export function StatusNodeCard({ node, highlightedShardId, now }: StatusNodeCard
       {isExpanded && (
         <div className='border-t px-4 pt-4'>
           <div className='flex flex-col gap-4'>
-            <div className='flex flex-wrap gap-4 text-xs'>
+            <div className='grid grid-cols-2 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5 gap-4 text-xs'>
               <div className='space-y-1'>
                 <span className='text-muted-foreground'>Uptime</span>
                 <div className='text-foreground font-medium'>{uptime}</div>
